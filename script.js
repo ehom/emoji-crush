@@ -1,12 +1,15 @@
 const grid = document.querySelector('.grid');
 const title = document.querySelector('#title');
 const emojis = ['🍎', '🍊', '🍇', '🍒', '🍍', '🍉']; // Add more emojis as needed
-const width = 9;
 const cells = [];
 let score = 0;
+let width = window.innerWidth <= 600 ? 7 : 9; // Set width based on screen size
 
-// Create the board
+// Function to create the board
 function createBoard() {
+    grid.innerHTML = ''; // Clear the grid
+    cells.length = 0; // Clear the cells array
+
     for (let i = 0; i < width * width; i++) {
         const cell = document.createElement('div');
         cell.classList.add('cell');
@@ -17,37 +20,30 @@ function createBoard() {
         grid.appendChild(cell);
         cells.push(cell);
     }
+
+    cells.forEach(cell => cell.addEventListener('dragstart', dragStart));
+    cells.forEach(cell => cell.addEventListener('dragend', dragEnd));
+    cells.forEach(cell => cell.addEventListener('dragover', dragOver));
+    cells.forEach(cell => cell.addEventListener('dragenter', dragEnter));
+    cells.forEach(cell => cell.addEventListener('dragleave', dragLeave));
+    cells.forEach(cell => cell.addEventListener('drop', dragDrop));
 }
 
+// Function to reset the board
 function resetBoard() {
-    grid.innerHTML = '';
-    cells.length = 0;
-    createBoard();
     score = 0;
     document.getElementById('score').innerText = score;
+    width = window.innerWidth <= 600 ? 7 : 9; // Adjust width based on screen size
+    createBoard();
 }
 
-createBoard();
-
-title.addEventListener('click', resetBoard);
-
-let emojiBeingDragged;
-let emojiBeingReplaced;
-let cellIdBeingDragged;
-let cellIdBeingReplaced;
-
-cells.forEach(cell => cell.addEventListener('dragstart', dragStart));
-cells.forEach(cell => cell.addEventListener('dragend', dragEnd));
-cells.forEach(cell => cell.addEventListener('dragover', dragOver));
-cells.forEach(cell => cell.addEventListener('dragenter', dragEnter));
-cells.forEach(cell => cell.addEventListener('dragleave', dragLeave));
-cells.forEach(cell => cell.addEventListener('drop', dragDrop));
-
+// Function to handle drag start
 function dragStart() {
     emojiBeingDragged = this.innerHTML;
     cellIdBeingDragged = parseInt(this.id);
 }
 
+// Function to handle drag end
 function dragEnd() {
     let validMoves = [cellIdBeingDragged - 1, cellIdBeingDragged + 1, cellIdBeingDragged - width, cellIdBeingDragged + width];
     let validMove = validMoves.includes(cellIdBeingReplaced);
@@ -61,16 +57,20 @@ function dragEnd() {
     } else cells[cellIdBeingDragged].innerHTML = emojiBeingDragged;
 }
 
+// Function to handle drag over
 function dragOver(e) {
     e.preventDefault();
 }
 
+// Function to handle drag enter
 function dragEnter(e) {
     e.preventDefault();
 }
 
+// Function to handle drag leave
 function dragLeave() {}
 
+// Function to handle drop
 function dragDrop() {
     emojiBeingReplaced = this.innerHTML;
     cellIdBeingReplaced = parseInt(this.id);
@@ -78,7 +78,7 @@ function dragDrop() {
     cells[cellIdBeingReplaced].innerHTML = emojiBeingDragged;
 }
 
-// Check for matches
+// Function to check for matches
 function checkMatches() {
     // Check for row matches
     for (let i = 0; i < width * width; i++) {
@@ -133,3 +133,16 @@ window.setInterval(function() {
     checkMatches();
 }, 100);
 
+// Add event listener to title for resetting the board
+title.addEventListener('click', resetBoard);
+
+// Initial board creation
+createBoard();
+
+// Adjust the grid size on window resize
+window.addEventListener('resize', () => {
+    const newWidth = window.innerWidth <= 600 ? 7 : 9;
+    if (newWidth !== width) {
+        resetBoard();
+    }
+});
